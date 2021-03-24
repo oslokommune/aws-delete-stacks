@@ -7,24 +7,15 @@ import (
 )
 
 func DeleteCloudFormationStacks(stackFilter string, force bool) error {
-	fmt.Printf("Deleting stacks (%t) with filter %s\n", force, stackFilter)
-	fmt.Println("TODO: Implement this")
-
-	return nil
-}
-
-func run() error {
 	mySession := session.Must(session.NewSession())
+	cf := cloudformation.New(mySession)
 
-	// Create a CloudFormation client from just a session.
-	c := cloudformation.New(mySession)
+	deleter := NewDeleter(cf)
 
-	output, err := c.ListStacks(&cloudformation.ListStacksInput{})
+	err := deleter.DeleteCloudFormationStacks(stackFilter, force)
 	if err != nil {
-		return fmt.Errorf("listing stacks: %w", err)
+		return fmt.Errorf("delete cloud formation stacks: %w", err)
 	}
-
-	fmt.Println(output)
 
 	return nil
 }

@@ -1,13 +1,12 @@
 package main
 
 import (
-	"aws-stack-deleter/cmd"
 	"fmt"
+	"github.com/oslokommune/aws-delete-stacks/cmd"
 	"os"
 )
 
 func main() {
-	fmt.Println("Hello")
 	c := cmd.BuildRootCommand()
 
 	if err := c.Execute(); err != nil {
