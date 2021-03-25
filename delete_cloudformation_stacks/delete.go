@@ -2,13 +2,20 @@ package delete_cloudformation_stacks
 
 import (
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 )
 
 func DeleteCloudFormationStacks(stackFilter string, force bool) error {
-	mySession := session.Must(session.NewSession())
-	cf := cloudformation.New(mySession)
+	t := true
+	s := session.Must(session.NewSessionWithOptions(session.Options{
+		Config: aws.Config{
+			CredentialsChainVerboseErrors: &t,
+		},
+		SharedConfigState: session.SharedConfigEnable,
+	}))
+	cf := cloudformation.New(s)
 
 	deleter := NewDeleter(cf)
 
