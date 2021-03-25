@@ -23,17 +23,11 @@ jobs:
           tagRegexGroup: 1
 
       -
-        name: Check if release notes exist
-        uses: andstor/file-existence-action@v1
-        with:
-          files: docs/release_notes/${{ steps.tagName.outputs.tag }}
-          allow_failure: false
-
-      -
         name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v2.4.1
         with:
           version: latest
-          args: release --skip-publish
+          # Use --skip-publish when testing
+          args: release
         env:
           GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
