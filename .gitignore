@@ -1,6 +1,8 @@
 ###
 ### GOLANG: https://github.com/github/gitignore/blob/master/Go.gitignore
 ###
+dist/
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
