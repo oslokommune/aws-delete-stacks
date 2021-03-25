@@ -129,7 +129,7 @@ func (d *Deleter) deleteStacks(stacks []*deleteStackInput, force bool) error {
 	if force {
 		fmt.Printf("- Deleting %d stacks\n", len(stacks))
 	} else {
-		fmt.Printf("- Would delete %d stack\n", len(stacks))
+		fmt.Printf("- Would delete %d stack(s)\n", len(stacks))
 	}
 
 	for _, stack := range stacks {
@@ -144,7 +144,7 @@ func (d *Deleter) deleteStacks(stacks []*deleteStackInput, force bool) error {
 		}
 	}
 
-	fmt.Printf("\nNo CloudFormation stacks were deleted, as you didn't specify the --force flag.")
+	fmt.Printf("\nNo CloudFormation stacks were deleted, as you didn't specify the --force flag.\n")
 
 	return nil
 }
