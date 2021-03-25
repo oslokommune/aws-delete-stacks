@@ -1,0 +1,39 @@
+name: goreleaser
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      -
+        name: Get the git tag
+        uses: little-core-labs/get-git-tag@v3.0.2
+        id: tagName
+        with:
+          tagRegex: v(.*)
+          tagRegexGroup: 1
+
+      -
+        name: Check if release notes exist
+        uses: andstor/file-existence-action@v1
+        with:
+          files: docs/release_notes/${{ steps.tagName.outputs.tag }}
+          allow_failure: false
+
+      -
+        name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v2.4.1
+        with:
+          version: latest
+          args: release --skip-publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
