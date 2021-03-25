@@ -31,3 +31,4 @@ jobs:
           args: release
         env:
           GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
+
