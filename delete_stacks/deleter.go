@@ -54,7 +54,7 @@ func (d *Deleter) listStacks() ([]*StackSummary, error) {
 	statusFilter := []*string{&statusDeleteInProgress, &statusCreateComplete, &statusDeleteFailed}
 
 	i := 0
-	crashProtection := 3
+	crashProtection := 1000
 	var nextPageToken *string
 
 	for i < crashProtection {
