@@ -11,12 +11,12 @@ import (
 	"testing"
 )
 
-func TestDeleteCmd(t *testing.T) {
+func TestFilter(t *testing.T) {
 	testCases := []struct {
 		name                   string
 		includeFilter          string
 		stackSummaries         []*delete_stacks.StackSummary
-		expectedOutputContains string
+		expectedOutputContains []string
 	}{
 		{
 			name:          "Should not delete stacks that doesn't contain include filter",
@@ -25,7 +25,19 @@ func TestDeleteCmd(t *testing.T) {
 				newStackSummary("somestack-dev", mockConstants().StackStatusCreateComplete),
 				newStackSummary("some-other-stack-dev", mockConstants().StackStatusCreateComplete),
 			},
-			expectedOutputContains: "Would delete 0 stack(s)",
+			expectedOutputContains: []string{"Would delete 0 stack(s)"},
+		},
+		{
+			name:          "Should delete stacks that contains include filter",
+			includeFilter: "other-stack",
+			stackSummaries: []*delete_stacks.StackSummary{
+				newStackSummary("somestack-dev", mockConstants().StackStatusCreateComplete),
+				newStackSummary("some-other-stack-dev", mockConstants().StackStatusCreateComplete),
+			},
+			expectedOutputContains: []string{
+				"Would delete 1 stack(s)",
+				"some-other-stack-dev",
+			},
 		},
 	}
 
@@ -41,7 +53,10 @@ func TestDeleteCmd(t *testing.T) {
 			cmdOutput := runDeleteCommand(t, mock, tc.includeFilter)
 
 			// Then
-			assert.Contains(t, cmdOutput, tc.expectedOutputContains)
+			for _, ec := range tc.expectedOutputContains {
+				assert.Contains(t, cmdOutput, ec)
+			}
+
 			fmt.Println(cmdOutput)
 		})
 	}
