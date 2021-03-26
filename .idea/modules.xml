@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/aws-stack-deleter.iml" filepath="$PROJECT_DIR$/.idea/aws-stack-deleter.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/aws-delete-stacks.iml" filepath="$PROJECT_DIR$/.idea/aws-delete-stacks.iml" />
     </modules>
   </component>
 </project>
