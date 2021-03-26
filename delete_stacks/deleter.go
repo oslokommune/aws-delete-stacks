@@ -16,14 +16,14 @@ type Deleter struct {
 	out io.Writer
 }
 
-func newDeleter(cf CloudFormation, out io.Writer) *Deleter {
+func NewDeleter(cf CloudFormation, out io.Writer) *Deleter {
 	return &Deleter{
 		cf:  cf,
 		out: out,
 	}
 }
 
-func (d *Deleter) DeleteCloudFormationStacks(stackFilter string, force bool) error {
+func (d *Deleter) DeleteCloudFormationStacks(includeFilter string, excludeFilter string, force bool) error {
 	output, err := d.listStacks()
 	if err != nil {
 		return err
@@ -32,7 +32,7 @@ func (d *Deleter) DeleteCloudFormationStacks(stackFilter string, force bool) err
 	var toDelete []*deleteStackInput
 	toDelete = d.toDeleteStackInput(output)
 
-	toDelete, err = d.filter(toDelete, stackFilter)
+	toDelete, err = d.filter(toDelete, includeFilter, excludeFilter)
 	if err != nil {
 		return fmt.Errorf("filter stack input: %w", err)
 	}
@@ -114,13 +114,20 @@ func (d *Deleter) toDeleteStackInput(output []*StackSummary) []*deleteStackInput
 	return input
 }
 
-func (d *Deleter) filter(stacks []*deleteStackInput, stackFilter string) ([]*deleteStackInput, error) {
+func (d *Deleter) filter(stacks []*deleteStackInput, includeFilter string, excludeFilter string) ([]*deleteStackInput, error) {
 	filtered := make([]*deleteStackInput, 0)
 
+	var add *deleteStackInput
 	for _, input := range stacks {
-		match := strings.Contains(input.StackName, stackFilter)
+		if len(includeFilter) > 0 && strings.Contains(input.StackName, includeFilter) {
+			add = input
+		}
 
-		if match {
+		if len(excludeFilter) > 0 && strings.Contains(input.StackName, excludeFilter) {
+			add = nil
+		}
+
+		if add != nil {
 			filtered = append(filtered, input)
 		}
 	}

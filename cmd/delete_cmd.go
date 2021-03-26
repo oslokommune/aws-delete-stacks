@@ -10,12 +10,13 @@ func BuildDeleteCommand(cf delete_stacks.CloudFormation) *cobra.Command {
 	opts := &deleteStacksOpts{}
 
 	cmd := &cobra.Command{
-		Use:   "delete <FILTER>",
-		Args:  cobra.ExactArgs(1),
+		Use:   "delete <INCLUDE FILTER>",
+		Args:  cobra.ExactArgs(2),
 		Short: "Delete AWS cloudformation stacks",
-		Long:  "Delete AWS cloudformation stacks with names that contains the given FILTER.",
+		Long: "Delete AWS cloudformation stacks with names containing the string INCLUDE FILTER " +
+			"(minus stack containing exclude filter).",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			opts.IncludeFilter = args[0]
+			opts.IncludeFilter = args[1]
 
 			err := opts.Validate()
 			if err != nil {
@@ -25,7 +26,9 @@ func BuildDeleteCommand(cf delete_stacks.CloudFormation) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := delete_stacks.DeleteCloudFormationStacks(cf, cmd.OutOrStdout(), opts.IncludeFilter, opts.Force)
+			deleter := delete_stacks.NewDeleter(cf, cmd.OutOrStdout())
+
+			err := deleter.DeleteCloudFormationStacks(opts.IncludeFilter, opts.ExcludeFilter, opts.Force)
 			if err != nil {
 				fmt.Printf("Program error: %s\n", err)
 			}
@@ -35,8 +38,12 @@ func BuildDeleteCommand(cf delete_stacks.CloudFormation) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	cmd.SilenceErrors = true
-	flags.BoolVarP(&opts.Force, "force", "f", false, "Use this flag to actually delete stacks. Otherwise nothing is deleted.")
+	cmd.SilenceUsage = true
+
+	flags.StringVarP(&opts.ExcludeFilter, "exclude", "e", "",
+		"Set filter for which stacks to subtract from included results (filter method: string contains).")
+	flags.BoolVarP(&opts.Force, "force", "f", false,
+		"Use this flag to actually delete stacks. Otherwise nothing is deleted.")
 
 	return cmd
 }

@@ -21,6 +21,8 @@ You can have a look at the stacks yourself at
 [AWS CloudFormation](https://eu-central-1.console.aws.amazon.com/cloudformation/home?region=eu-central-1#/stacks) 
 (remember to switch to your zone).
 
+See more examples below.
+
 # Install
 
 ```shell
@@ -66,10 +68,18 @@ saml2aws login --profile default
 aws-delete-stacks --help
 ```
 
-Example:
+Examples:
+
+Delete all stacks that contains the name 'mystack':
 
 ```shell
 aws-delete-stacks mystack
+```
+
+Delete all stacks that contains the name 'mystack', minus the stacks that contains 'mystack-hostedzone':
+
+```shell
+aws-delete-stacks mystack --exclude mystack-hostedzone
 ```
 
 This is totally safe. Nothing is deleted until you specify the `--force` flag.
@@ -77,3 +87,17 @@ This is totally safe. Nothing is deleted until you specify the `--force` flag.
 When you do, know that stuff in AWS will be deleted you do this. I.e. know what you are doing.
 
 Disclaimer: I don't take responsibility for anything this tool does or your usage of it.
+
+# Syntax
+
+```shell
+Delete AWS cloudformation stacks with names containing the string INCLUDE FILTER (minus stack containing exclude filter).
+
+Usage:
+  delete <INCLUDE FILTER> [flags]
+
+Flags:
+  -e, --exclude string   Set filter for which stacks to subtract from included results (filter method: string contains).
+  -f, --force            Use this flag to actually delete stacks. Otherwise nothing is deleted.
+  -h, --help             help for delete
+```
