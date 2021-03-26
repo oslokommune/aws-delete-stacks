@@ -25,7 +25,7 @@ func TestDeleteCmd(t *testing.T) {
 			name:                   "Should print usage if no arguments are specified",
 			args:                   "",
 			expectError:            true,
-			expectedStderrContains: []string{"Error: accepts 2 arg(s), received 1"},
+			expectedStderrContains: []string{"Error: validation failed: IncludeFilter: cannot be blank."},
 		},
 		{
 			name:           "Should print error if only --exclude flag is specified",
@@ -33,7 +33,7 @@ func TestDeleteCmd(t *testing.T) {
 			stackSummaries: nil,
 			expectError:    true,
 			expectedStderrContains: []string{
-				"Error: accepts 2 arg(s), received 1",
+				"Error: accepts 1 arg(s), received 0",
 			},
 		},
 	}
@@ -67,7 +67,7 @@ func runTestCases(t *testing.T, testCases []*DeleteCmdTestCase) {
 }
 
 func runDeleteCommand(t *testing.T, cf delete_stacks.CloudFormation, argsString string) (string, string) {
-	deleteAndArgs := strings.Trim("delete "+argsString, " ")
+	deleteAndArgs := strings.Trim(argsString, " ")
 	args := strings.Split(deleteAndArgs, " ")
 
 	var stdoutBuffer bytes.Buffer

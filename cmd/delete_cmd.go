@@ -10,13 +10,13 @@ func BuildDeleteCommand(cf delete_stacks.CloudFormation) *cobra.Command {
 	opts := &deleteStacksOpts{}
 
 	cmd := &cobra.Command{
-		Use:   "delete <INCLUDE FILTER>",
-		Args:  cobra.ExactArgs(2),
+		Use:   "aws-delete-stacks <INCLUDE FILTER>",
+		Args:  cobra.ExactArgs(1),
 		Short: "Delete AWS cloudformation stacks",
 		Long: "Delete AWS cloudformation stacks with names containing the string INCLUDE FILTER " +
 			"(minus stack containing exclude filter).",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			opts.IncludeFilter = args[1]
+			opts.IncludeFilter = args[0]
 
 			err := opts.Validate()
 			if err != nil {
