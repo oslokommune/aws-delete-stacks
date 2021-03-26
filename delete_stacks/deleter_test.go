@@ -1,4 +1,4 @@
-package delete_cloudformation_stacks
+package delete_stacks
 
 import (
 	"gotest.tools/assert"
@@ -6,7 +6,7 @@ import (
 )
 
 func TestFilter(t *testing.T) {
-	deleter := NewDeleter(nil)
+	deleter := newDeleter(nil, nil)
 
 	testCases := []struct {
 		name        string

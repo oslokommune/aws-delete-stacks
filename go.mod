@@ -7,5 +7,6 @@ require (
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/hashicorp/go-uuid v1.0.2
 	github.com/spf13/cobra v1.1.3
+	github.com/stretchr/testify v1.4.0
 	gotest.tools v2.2.0+incompatible
 )
