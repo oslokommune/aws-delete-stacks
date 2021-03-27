@@ -119,7 +119,9 @@ func (d *Deleter) filter(stacks []*deleteStackInput, includeFilter string, exclu
 
 	var add *deleteStackInput
 	for _, input := range stacks {
-		if len(includeFilter) > 0 && strings.Contains(input.StackName, includeFilter) {
+		add = nil
+
+		if len(includeFilter) > 0 && strings.Contains(*input.StackName, includeFilter) {
 			add = input
 		}
 
