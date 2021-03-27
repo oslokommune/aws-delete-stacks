@@ -34,7 +34,7 @@ func (d *Deleter) DeleteCloudFormationStacks(includeFilter string, excludeFilter
 
 	toDelete, err = d.filter(toDelete, includeFilter, excludeFilter)
 	if err != nil {
-		return fmt.Errorf("filter Stack input: %w", err)
+		return fmt.Errorf("filter stack input: %w", err)
 	}
 
 	err = d.deleteStacks(toDelete, force)
@@ -164,7 +164,7 @@ func (d *Deleter) deleteStacks(stacks []*cloudformation_api.Stack, force bool) e
 }
 
 func (d *Deleter) deleteStack(stack *cloudformation_api.Stack) error {
-	_, err := fmt.Fprintf(d.out, "\nDeleting Stack: %+v\n", stack)
+	_, err := fmt.Fprintf(d.out, "\nDeleting stack: %+v\n", stack)
 	if err != nil {
 		return err
 	}
@@ -181,7 +181,7 @@ func (d *Deleter) deleteStack(stack *cloudformation_api.Stack) error {
 
 	if *stack.StackStatus == d.cf.Constants().StackStatusDeleteInProgress {
 		_, err := fmt.Fprintf(d.out,
-			"Stack has status '%s', so let's wait for it to be deleted.\n", *stack.StackStatus)
+			"stack has status '%s', so let's wait for it to be deleted.\n", *stack.StackStatus)
 		if err != nil {
 			return err
 		}
@@ -198,7 +198,7 @@ func (d *Deleter) deleteStack(stack *cloudformation_api.Stack) error {
 	}
 
 	if stackStatus != d.cf.Constants().StackStatusDeleteComplete {
-		return fmt.Errorf("unable to delete Stack '%s'. Delete status was '%s'. "+
+		return fmt.Errorf("unable to delete stack '%s'. Delete status was '%s'. "+
 			"You need to manually fix whatever is blocking this Stack to be deleted. Then run this "+
 			"program again", stack, stackStatus)
 	}
@@ -225,7 +225,7 @@ func (d *Deleter) waitForDeleteNotInProgress(input *cloudformation_api.DeleteSta
 
 		sleepDuration := d.nextSleep(i)
 
-		_, err := fmt.Fprintf(d.out, "Waiting %d seconds to see if Stack deletion is done...\n", sleepDuration)
+		_, err := fmt.Fprintf(d.out, "Waiting %d seconds to see if stack deletion is done...\n", sleepDuration)
 		if err != nil {
 			return "", err
 		}
@@ -245,18 +245,18 @@ func (d *Deleter) getStack(input *cloudformation_api.DeleteStackInput) (*cloudfo
 	if err != nil {
 		awsError, ok := err.(awserr.RequestFailure)
 		if !ok {
-			return nil, fmt.Errorf("describe Stack: %w", err)
+			return nil, fmt.Errorf("describe stack: %w", err)
 		}
 
 		if strings.Contains(awsError.Message(), "does not exist") {
 			return nil, nil
 		}
 
-		return nil, fmt.Errorf("describe Stack: %w", err)
+		return nil, fmt.Errorf("describe stack: %w", err)
 	}
 
 	if len(stackResponse.Stacks) > 1 {
-		return nil, errors.New("internal error, expected 1 Stack")
+		return nil, errors.New("internal error, expected 1 stack")
 	}
 
 	stack := stackResponse.Stacks[0]
