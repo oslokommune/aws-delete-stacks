@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/oslokommune/aws-delete-stacks/cloudformation_api"
-	"github.com/oslokommune/aws-delete-stacks/delete_stacks"
+	"github.com/oslokommune/aws-delete-stacks/core/delete_stacks"
 	"github.com/spf13/cobra"
 )
 
