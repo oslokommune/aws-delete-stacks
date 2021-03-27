@@ -14,7 +14,7 @@ type DeleteCmdTestCase struct {
 	expectedStderrContains []string
 }
 
-func TestDeleteCmd(t *testing.T) {
+func TestCmdUsage(t *testing.T) {
 	testCases := []*DeleteCmdTestCase{
 		{
 			name:                   "Should print usage if no arguments are specified",
