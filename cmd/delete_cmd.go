@@ -2,11 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/oslokommune/aws-delete-stacks/cloudformation_api"
 	"github.com/oslokommune/aws-delete-stacks/delete_stacks"
 	"github.com/spf13/cobra"
 )
 
-func BuildDeleteCommand(cf delete_stacks.CloudFormation) *cobra.Command {
+func BuildDeleteCommand(cf cloudformation_api.CloudFormation) *cobra.Command {
 	opts := &deleteStacksOpts{}
 
 	cmd := &cobra.Command{

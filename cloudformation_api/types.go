@@ -1,4 +1,4 @@
-package delete_stacks
+package cloudformation_api
 
 import (
 	"fmt"

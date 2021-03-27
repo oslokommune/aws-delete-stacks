@@ -1,7 +1,7 @@
 package cmd_test
 
 import (
-	"github.com/oslokommune/aws-delete-stacks/delete_stacks"
+	"github.com/oslokommune/aws-delete-stacks/cloudformation_api"
 	"time"
 )
 
@@ -10,15 +10,15 @@ func NewCloudFormationMock() *CloudFormationMock {
 }
 
 type CloudFormationMock struct {
-	StackSummaries []*delete_stacks.StackSummary
+	StackSummaries []*cloudformation_api.StackSummary
 }
 
-func (c *CloudFormationMock) Constants() *delete_stacks.Constants {
+func (c *CloudFormationMock) Constants() *cloudformation_api.Constants {
 	return mockConstants()
 }
 
-func mockConstants() *delete_stacks.Constants {
-	return &delete_stacks.Constants{
+func mockConstants() *cloudformation_api.Constants {
+	return &cloudformation_api.Constants{
 		StackStatusDeleteInProgress: "IN_PROGRESS",
 		StackStatusCreateComplete:   "CREATE_COMPLETE",
 		StackStatusDeleteFailed:     "DELETE_FAILED",
@@ -26,19 +26,19 @@ func mockConstants() *delete_stacks.Constants {
 	}
 }
 
-func (c *CloudFormationMock) ListStacks(_ *delete_stacks.ListStacksInput) (*delete_stacks.ListStacksOutput, error) {
-	return &delete_stacks.ListStacksOutput{
+func (c *CloudFormationMock) ListStacks(_ *cloudformation_api.ListStacksInput) (*cloudformation_api.ListStacksOutput, error) {
+	return &cloudformation_api.ListStacksOutput{
 		StackSummaries: c.StackSummaries,
 		NextToken:      nil,
 	}, nil
 }
 
-func newStackSummary(stackName string, stackStatus string) *delete_stacks.StackSummary {
+func newStackSummary(stackName string, stackStatus string) *cloudformation_api.StackSummary {
 	id := "id-" + stackName
 	loc := time.Local
 	t := time.Date(2020, 1, 1, 0, 0, 0, 0, loc)
 
-	return &delete_stacks.StackSummary{
+	return &cloudformation_api.StackSummary{
 		StackName:    &stackName,
 		StackId:      &id,
 		StackStatus:  &stackStatus,
@@ -46,10 +46,10 @@ func newStackSummary(stackName string, stackStatus string) *delete_stacks.StackS
 	}
 }
 
-func (c *CloudFormationMock) DeleteStack(_ *delete_stacks.DeleteStackInput) (*delete_stacks.DeleteStackOutput, error) {
+func (c *CloudFormationMock) DeleteStack(_ *cloudformation_api.DeleteStackInput) (*cloudformation_api.DeleteStackOutput, error) {
 	panic("implement me")
 }
 
-func (c *CloudFormationMock) DescribeStacks(_ *delete_stacks.DescribeStacksInput) (*delete_stacks.DescribeStacksOutput, error) {
+func (c *CloudFormationMock) DescribeStacks(_ *cloudformation_api.DescribeStacksInput) (*cloudformation_api.DescribeStacksOutput, error) {
 	panic("implement me")
 }

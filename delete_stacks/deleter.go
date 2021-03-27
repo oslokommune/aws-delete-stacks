@@ -5,17 +5,18 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/hashicorp/go-uuid"
+	"github.com/oslokommune/aws-delete-stacks/cloudformation_api"
 	"io"
 	"strings"
 	"time"
 )
 
 type Deleter struct {
-	cf  CloudFormation
+	cf  cloudformation_api.CloudFormation
 	out io.Writer
 }
 
-func NewDeleter(cf CloudFormation, out io.Writer) *Deleter {
+func NewDeleter(cf cloudformation_api.CloudFormation, out io.Writer) *Deleter {
 	return &Deleter{
 		cf:  cf,
 		out: out,
@@ -28,7 +29,7 @@ func (d *Deleter) DeleteCloudFormationStacks(includeFilter string, excludeFilter
 		return err
 	}
 
-	var toDelete []*Stack
+	var toDelete []*cloudformation_api.Stack
 	toDelete = d.toStack(output)
 
 	toDelete, err = d.filter(toDelete, includeFilter, excludeFilter)
@@ -44,8 +45,8 @@ func (d *Deleter) DeleteCloudFormationStacks(includeFilter string, excludeFilter
 	return nil
 }
 
-func (d *Deleter) listStacks() ([]*StackSummary, error) {
-	outputs := make([]*StackSummary, 0)
+func (d *Deleter) listStacks() ([]*cloudformation_api.StackSummary, error) {
+	outputs := make([]*cloudformation_api.StackSummary, 0)
 
 	statusDeleteInProgress := d.cf.Constants().StackStatusDeleteInProgress
 	statusCreateComplete := d.cf.Constants().StackStatusCreateComplete
@@ -57,15 +58,15 @@ func (d *Deleter) listStacks() ([]*StackSummary, error) {
 	var nextPageToken *string
 
 	for i < crashProtection {
-		var output *ListStacksOutput
+		var output *cloudformation_api.ListStacksOutput
 		var err error
 
 		if i == 0 {
-			output, err = d.cf.ListStacks(&ListStacksInput{
+			output, err = d.cf.ListStacks(&cloudformation_api.ListStacksInput{
 				StackStatusFilter: statusFilter,
 			})
 		} else {
-			output, err = d.cf.ListStacks(&ListStacksInput{
+			output, err = d.cf.ListStacks(&cloudformation_api.ListStacksInput{
 				NextToken:         nextPageToken,
 				StackStatusFilter: statusFilter,
 			})
@@ -87,11 +88,11 @@ func (d *Deleter) listStacks() ([]*StackSummary, error) {
 	return outputs, nil
 }
 
-func (d *Deleter) toStack(output []*StackSummary) []*Stack {
-	input := make([]*Stack, 0)
+func (d *Deleter) toStack(output []*cloudformation_api.StackSummary) []*cloudformation_api.Stack {
+	input := make([]*cloudformation_api.Stack, 0)
 
 	for _, summary := range output {
-		input = append(input, &Stack{
+		input = append(input, &cloudformation_api.Stack{
 			StackName:   summary.StackName,
 			RoleARN:     summary.StackId,
 			StackStatus: summary.StackStatus,
@@ -102,10 +103,10 @@ func (d *Deleter) toStack(output []*StackSummary) []*Stack {
 	return input
 }
 
-func (d *Deleter) filter(stacks []*Stack, includeFilter string, excludeFilter string) ([]*Stack, error) {
-	filtered := make([]*Stack, 0)
+func (d *Deleter) filter(stacks []*cloudformation_api.Stack, includeFilter string, excludeFilter string) ([]*cloudformation_api.Stack, error) {
+	filtered := make([]*cloudformation_api.Stack, 0)
 
-	var add *Stack
+	var add *cloudformation_api.Stack
 	for _, input := range stacks {
 		add = nil
 
@@ -125,7 +126,7 @@ func (d *Deleter) filter(stacks []*Stack, includeFilter string, excludeFilter st
 	return filtered, nil
 }
 
-func (d *Deleter) deleteStacks(stacks []*Stack, force bool) error {
+func (d *Deleter) deleteStacks(stacks []*cloudformation_api.Stack, force bool) error {
 	if force {
 		_, err := fmt.Fprintf(d.out, "- Deleting %d stacks\n", len(stacks))
 		if err != nil {
@@ -162,7 +163,7 @@ func (d *Deleter) deleteStacks(stacks []*Stack, force bool) error {
 	return nil
 }
 
-func (d *Deleter) deleteStack(stack *Stack) error {
+func (d *Deleter) deleteStack(stack *cloudformation_api.Stack) error {
 	_, err := fmt.Fprintf(d.out, "\nDeleting Stack: %+v\n", stack)
 	if err != nil {
 		return err
@@ -173,7 +174,7 @@ func (d *Deleter) deleteStack(stack *Stack) error {
 		return fmt.Errorf("generating uuid: %w", err)
 	}
 
-	input := &DeleteStackInput{
+	input := &cloudformation_api.DeleteStackInput{
 		ClientRequestToken: &token,
 		StackName:          stack.StackName,
 	}
@@ -205,9 +206,9 @@ func (d *Deleter) deleteStack(stack *Stack) error {
 	return nil
 }
 
-func (d *Deleter) waitForDeleteNotInProgress(input *DeleteStackInput) (string, error) {
+func (d *Deleter) waitForDeleteNotInProgress(input *cloudformation_api.DeleteStackInput) (string, error) {
 	wait := true
-	var stack *Stack
+	var stack *cloudformation_api.Stack
 	var err error
 
 	for i := 0; wait; i++ {
@@ -235,8 +236,8 @@ func (d *Deleter) waitForDeleteNotInProgress(input *DeleteStackInput) (string, e
 	return *stack.StackStatus, nil
 }
 
-func (d *Deleter) getStack(input *DeleteStackInput) (*Stack, error) {
-	s := &DescribeStacksInput{
+func (d *Deleter) getStack(input *cloudformation_api.DeleteStackInput) (*cloudformation_api.Stack, error) {
+	s := &cloudformation_api.DescribeStacksInput{
 		StackName: input.StackName,
 	}
 

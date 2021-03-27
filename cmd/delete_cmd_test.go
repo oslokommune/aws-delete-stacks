@@ -2,8 +2,8 @@ package cmd_test
 
 import (
 	"bytes"
+	"github.com/oslokommune/aws-delete-stacks/cloudformation_api"
 	"github.com/oslokommune/aws-delete-stacks/cmd"
-	"github.com/oslokommune/aws-delete-stacks/delete_stacks"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"strings"
@@ -13,7 +13,7 @@ import (
 type DeleteCmdTestCase struct {
 	name                   string
 	args                   string
-	stackSummaries         []*delete_stacks.StackSummary
+	stackSummaries         []*cloudformation_api.StackSummary
 	expectError            bool
 	expectedStdoutContains []string
 	expectedStderrContains []string
@@ -66,7 +66,7 @@ func runTestCases(t *testing.T, testCases []*DeleteCmdTestCase) {
 	}
 }
 
-func runDeleteCommand(t *testing.T, cf delete_stacks.CloudFormation, argsString string) (string, string) {
+func runDeleteCommand(t *testing.T, cf cloudformation_api.CloudFormation, argsString string) (string, string) {
 	deleteAndArgs := strings.Trim(argsString, " ")
 	args := strings.Split(deleteAndArgs, " ")
 
