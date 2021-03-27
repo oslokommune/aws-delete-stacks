@@ -13,6 +13,10 @@ type CloudFormationMock struct {
 	StackSummaries []*delete_stacks.StackSummary
 }
 
+func (c *CloudFormationMock) Constants() *delete_stacks.Constants {
+	return mockConstants()
+}
+
 func mockConstants() *delete_stacks.Constants {
 	return &delete_stacks.Constants{
 		StackStatusDeleteInProgress: "IN_PROGRESS",
@@ -20,10 +24,6 @@ func mockConstants() *delete_stacks.Constants {
 		StackStatusDeleteFailed:     "DELETE_FAILED",
 		StackStatusDeleteComplete:   "DELETE_COMPLETE",
 	}
-}
-
-func (c *CloudFormationMock) Constants() *delete_stacks.Constants {
-	return mockConstants()
 }
 
 func (c *CloudFormationMock) ListStacks(_ *delete_stacks.ListStacksInput) (*delete_stacks.ListStacksOutput, error) {
