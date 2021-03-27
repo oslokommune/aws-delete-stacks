@@ -1,9 +1,10 @@
-package delete_stacks
+package cloudformation_api
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/oslokommune/aws-delete-stacks/delete_stacks"
 )
 
 func NewAWSCloudFormation() *AWSCloudFormation {
@@ -26,19 +27,20 @@ type AWSCloudFormation struct {
 	cloudformation *cloudformation.CloudFormation
 }
 
-func constants() *Constants {
-	return &Constants{
+func constants() *delete_stacks.Constants {
+	return &delete_stacks.Constants{
 		StackStatusDeleteInProgress: cloudformation.StackStatusDeleteInProgress,
 		StackStatusCreateComplete:   cloudformation.StackStatusCreateComplete,
 		StackStatusDeleteFailed:     cloudformation.StackStatusDeleteFailed,
+		StackStatusDeleteComplete:   cloudformation.StackStatusDeleteComplete,
 	}
 }
 
-func (c *AWSCloudFormation) Constants() *Constants {
+func (c *AWSCloudFormation) Constants() *delete_stacks.Constants {
 	return constants()
 }
 
-func (c *AWSCloudFormation) ListStacks(input *ListStacksInput) (*ListStacksOutput, error) {
+func (c *AWSCloudFormation) ListStacks(input *delete_stacks.ListStacksInput) (*delete_stacks.ListStacksOutput, error) {
 	outputOrg, err := c.cloudformation.ListStacks(&cloudformation.ListStacksInput{
 		NextToken:         input.NextToken,
 		StackStatusFilter: input.StackStatusFilter,
@@ -47,12 +49,12 @@ func (c *AWSCloudFormation) ListStacks(input *ListStacksInput) (*ListStacksOutpu
 		return nil, err
 	}
 
-	output := &ListStacksOutput{}
+	output := &delete_stacks.ListStacksOutput{}
 	output.NextToken = outputOrg.NextToken
-	output.StackSummaries = make([]*StackSummary, len(outputOrg.StackSummaries))
+	output.StackSummaries = make([]*delete_stacks.StackSummary, len(outputOrg.StackSummaries))
 
 	for i, summary := range outputOrg.StackSummaries {
-		output.StackSummaries[i] = &StackSummary{
+		output.StackSummaries[i] = &delete_stacks.StackSummary{
 			StackName:    summary.StackName,
 			StackId:      summary.StackId,
 			StackStatus:  summary.StackStatus,
@@ -63,7 +65,7 @@ func (c *AWSCloudFormation) ListStacks(input *ListStacksInput) (*ListStacksOutpu
 	return output, nil
 }
 
-func (c *AWSCloudFormation) DeleteStack(input *DeleteStackInput) (*DeleteStackOutput, error) {
+func (c *AWSCloudFormation) DeleteStack(input *delete_stacks.DeleteStackInput) (*delete_stacks.DeleteStackOutput, error) {
 	_, err := c.cloudformation.DeleteStack(&cloudformation.DeleteStackInput{
 		ClientRequestToken: input.ClientRequestToken,
 		StackName:          input.StackName,
@@ -72,10 +74,10 @@ func (c *AWSCloudFormation) DeleteStack(input *DeleteStackInput) (*DeleteStackOu
 		return nil, err
 	}
 
-	return &DeleteStackOutput{}, nil
+	return &delete_stacks.DeleteStackOutput{}, nil
 }
 
-func (c *AWSCloudFormation) DescribeStacks(input *DescribeStacksInput) (*DescribeStacksOutput, error) {
+func (c *AWSCloudFormation) DescribeStacks(input *delete_stacks.DescribeStacksInput) (*delete_stacks.DescribeStacksOutput, error) {
 	outputOrg, err := c.cloudformation.DescribeStacks(&cloudformation.DescribeStacksInput{
 		NextToken: input.NextToken,
 		StackName: input.StackName,
@@ -84,11 +86,11 @@ func (c *AWSCloudFormation) DescribeStacks(input *DescribeStacksInput) (*Describ
 		return nil, err
 	}
 
-	output := &DescribeStacksOutput{}
-	output.Stacks = make([]*Stack, len(outputOrg.Stacks))
+	output := &delete_stacks.DescribeStacksOutput{}
+	output.Stacks = make([]*delete_stacks.Stack, len(outputOrg.Stacks))
 
 	for i, stack := range outputOrg.Stacks {
-		output.Stacks[i] = &Stack{
+		output.Stacks[i] = &delete_stacks.Stack{
 			StackStatus: stack.StackStatus,
 		}
 	}

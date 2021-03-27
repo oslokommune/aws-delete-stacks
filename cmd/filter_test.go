@@ -18,23 +18,25 @@ func TestFilter(t *testing.T) {
 		},
 		{
 			name: "Should delete stacks that contains include filter",
-			args: "other-stack",
+			args: "mystack",
 			stackSummaries: []*delete_stacks.StackSummary{
-				newStackSummary("somestack-dev", mockConstants().StackStatusCreateComplete),
+				newStackSummary("some-first-stack", mockConstants().StackStatusCreateComplete),
+				newStackSummary("mystack", mockConstants().StackStatusCreateComplete),
 				newStackSummary("some-other-stack-dev", mockConstants().StackStatusCreateComplete),
 			},
 			expectedStdoutContains: []string{
 				"Would delete 1 stack(s)",
-				"some-other-stack-dev",
+				"mystack",
 			},
 		},
 		{
 			name: "Should not delete stacks that contains include filter and exclude filter",
 			args: "other-stack --exclude hosted-zone",
 			stackSummaries: []*delete_stacks.StackSummary{
-				newStackSummary("somestack-dev", mockConstants().StackStatusCreateComplete),
+				newStackSummary("firststack", mockConstants().StackStatusCreateComplete),
 				newStackSummary("some-other-stack-dev", mockConstants().StackStatusCreateComplete),
 				newStackSummary("some-other-stack-hosted-zone-dev", mockConstants().StackStatusCreateComplete),
+				newStackSummary("laststack", mockConstants().StackStatusCreateComplete),
 			},
 			expectedStdoutContains: []string{
 				"Would delete 1 stack(s)",

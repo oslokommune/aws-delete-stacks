@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/hashicorp/go-uuid"
 	"io"
 	"strings"
@@ -29,12 +28,12 @@ func (d *Deleter) DeleteCloudFormationStacks(includeFilter string, excludeFilter
 		return err
 	}
 
-	var toDelete []*deleteStackInput
-	toDelete = d.toDeleteStackInput(output)
+	var toDelete []*Stack
+	toDelete = d.toStack(output)
 
 	toDelete, err = d.filter(toDelete, includeFilter, excludeFilter)
 	if err != nil {
-		return fmt.Errorf("filter stack input: %w", err)
+		return fmt.Errorf("filter Stack input: %w", err)
 	}
 
 	err = d.deleteStacks(toDelete, force)
@@ -88,36 +87,25 @@ func (d *Deleter) listStacks() ([]*StackSummary, error) {
 	return outputs, nil
 }
 
-type deleteStackInput struct {
-	StackName   string
-	RoleARN     string
-	StackStatus string
-	Time        time.Time
-}
-
-func (i *deleteStackInput) String() string {
-	return fmt.Sprintf("%s (%s)", i.StackName, i.Time.Format(time.RFC822))
-}
-
-func (d *Deleter) toDeleteStackInput(output []*StackSummary) []*deleteStackInput {
-	input := make([]*deleteStackInput, 0)
+func (d *Deleter) toStack(output []*StackSummary) []*Stack {
+	input := make([]*Stack, 0)
 
 	for _, summary := range output {
-		input = append(input, &deleteStackInput{
-			StackName:   *summary.StackName,
-			RoleARN:     *summary.StackId,
-			StackStatus: *summary.StackStatus,
-			Time:        *summary.CreationTime,
+		input = append(input, &Stack{
+			StackName:   summary.StackName,
+			RoleARN:     summary.StackId,
+			StackStatus: summary.StackStatus,
+			Time:        summary.CreationTime,
 		})
 	}
 
 	return input
 }
 
-func (d *Deleter) filter(stacks []*deleteStackInput, includeFilter string, excludeFilter string) ([]*deleteStackInput, error) {
-	filtered := make([]*deleteStackInput, 0)
+func (d *Deleter) filter(stacks []*Stack, includeFilter string, excludeFilter string) ([]*Stack, error) {
+	filtered := make([]*Stack, 0)
 
-	var add *deleteStackInput
+	var add *Stack
 	for _, input := range stacks {
 		add = nil
 
@@ -125,7 +113,7 @@ func (d *Deleter) filter(stacks []*deleteStackInput, includeFilter string, exclu
 			add = input
 		}
 
-		if len(excludeFilter) > 0 && strings.Contains(input.StackName, excludeFilter) {
+		if len(excludeFilter) > 0 && strings.Contains(*input.StackName, excludeFilter) {
 			add = nil
 		}
 
@@ -137,7 +125,7 @@ func (d *Deleter) filter(stacks []*deleteStackInput, includeFilter string, exclu
 	return filtered, nil
 }
 
-func (d *Deleter) deleteStacks(stacks []*deleteStackInput, force bool) error {
+func (d *Deleter) deleteStacks(stacks []*Stack, force bool) error {
 	if force {
 		_, err := fmt.Fprintf(d.out, "- Deleting %d stacks\n", len(stacks))
 		if err != nil {
@@ -174,8 +162,8 @@ func (d *Deleter) deleteStacks(stacks []*deleteStackInput, force bool) error {
 	return nil
 }
 
-func (d *Deleter) deleteStack(stack *deleteStackInput) error {
-	_, err := fmt.Fprintf(d.out, "\nDeleting stack: %+v\n", stack)
+func (d *Deleter) deleteStack(stack *Stack) error {
+	_, err := fmt.Fprintf(d.out, "\nDeleting Stack: %+v\n", stack)
 	if err != nil {
 		return err
 	}
@@ -187,29 +175,30 @@ func (d *Deleter) deleteStack(stack *deleteStackInput) error {
 
 	input := &DeleteStackInput{
 		ClientRequestToken: &token,
-		StackName:          &stack.StackName,
+		StackName:          stack.StackName,
 	}
 
-	if stack.StackStatus == cloudformation.StackStatusDeleteInProgress {
-		_, err := fmt.Fprintf(d.out, "Stack has status '%s', so let's wait for it to be deleted.\n", stack.StackStatus)
+	if *stack.StackStatus == d.cf.Constants().StackStatusDeleteInProgress {
+		_, err := fmt.Fprintf(d.out,
+			"Stack has status '%s', so let's wait for it to be deleted.\n", *stack.StackStatus)
 		if err != nil {
 			return err
 		}
 	} else {
 		_, err := d.cf.DeleteStack(input)
 		if err != nil {
-			return fmt.Errorf("delete stack: %w", err)
+			return fmt.Errorf("delete Stack: %w", err)
 		}
 	}
 
 	stackStatus, err := d.waitForDeleteNotInProgress(input)
 	if err != nil {
-		return fmt.Errorf("waiting for stack to be deleted: %w", err)
+		return fmt.Errorf("waiting for Stack to be deleted: %w", err)
 	}
 
-	if stackStatus != cloudformation.StackStatusDeleteComplete {
-		return fmt.Errorf("unable to delete stack '%s'. Delete status was '%s'. "+
-			"You need to manually fix whatever is blocking this stack to be deleted. Then run this "+
+	if stackStatus != d.cf.Constants().StackStatusDeleteComplete {
+		return fmt.Errorf("unable to delete Stack '%s'. Delete status was '%s'. "+
+			"You need to manually fix whatever is blocking this Stack to be deleted. Then run this "+
 			"program again", stack, stackStatus)
 	}
 
@@ -224,18 +213,18 @@ func (d *Deleter) waitForDeleteNotInProgress(input *DeleteStackInput) (string, e
 	for i := 0; wait; i++ {
 		stack, err = d.getStack(input)
 		if err != nil {
-			return "", fmt.Errorf("get stack: %w", err)
+			return "", fmt.Errorf("get Stack: %w", err)
 		}
 
 		if stack == nil {
-			return cloudformation.StackStatusDeleteComplete, nil
+			return d.cf.Constants().StackStatusDeleteComplete, nil
 		}
 
-		wait = *stack.StackStatus == cloudformation.StackStatusDeleteInProgress
+		wait = *stack.StackStatus == d.cf.Constants().StackStatusDeleteInProgress
 
 		sleepDuration := d.nextSleep(i)
 
-		_, err := fmt.Fprintf(d.out, "Waiting %d seconds to see if stack deletion is done...\n", sleepDuration)
+		_, err := fmt.Fprintf(d.out, "Waiting %d seconds to see if Stack deletion is done...\n", sleepDuration)
 		if err != nil {
 			return "", err
 		}
@@ -244,6 +233,34 @@ func (d *Deleter) waitForDeleteNotInProgress(input *DeleteStackInput) (string, e
 	}
 
 	return *stack.StackStatus, nil
+}
+
+func (d *Deleter) getStack(input *DeleteStackInput) (*Stack, error) {
+	s := &DescribeStacksInput{
+		StackName: input.StackName,
+	}
+
+	stackResponse, err := d.cf.DescribeStacks(s)
+	if err != nil {
+		awsError, ok := err.(awserr.RequestFailure)
+		if !ok {
+			return nil, fmt.Errorf("describe Stack: %w", err)
+		}
+
+		if strings.Contains(awsError.Message(), "does not exist") {
+			return nil, nil
+		}
+
+		return nil, fmt.Errorf("describe Stack: %w", err)
+	}
+
+	if len(stackResponse.Stacks) > 1 {
+		return nil, errors.New("internal error, expected 1 Stack")
+	}
+
+	stack := stackResponse.Stacks[0]
+
+	return stack, nil
 }
 
 func (_ *Deleter) nextSleep(i int) time.Duration {
@@ -256,32 +273,4 @@ func (_ *Deleter) nextSleep(i int) time.Duration {
 	}
 
 	return 10
-}
-
-func (d *Deleter) getStack(input *DeleteStackInput) (*Stack, error) {
-	s := &DescribeStacksInput{
-		StackName: input.StackName,
-	}
-
-	stackResponse, err := d.cf.DescribeStacks(s)
-	if err != nil {
-		awsError, ok := err.(awserr.RequestFailure)
-		if !ok {
-			return nil, fmt.Errorf("describe stack: %w", err)
-		}
-
-		if strings.Contains(awsError.Message(), "does not exist") {
-			return nil, nil
-		}
-
-		return nil, fmt.Errorf("describe stack: %w", err)
-	}
-
-	if len(stackResponse.Stacks) > 1 {
-		return nil, errors.New("internal error, expected 1 stack")
-	}
-
-	stack := stackResponse.Stacks[0]
-
-	return stack, nil
 }

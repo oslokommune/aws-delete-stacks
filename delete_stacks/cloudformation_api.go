@@ -1,6 +1,9 @@
 package delete_stacks
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type CloudFormation interface {
 	Constants() *Constants
@@ -14,6 +17,7 @@ type Constants struct {
 	StackStatusDeleteInProgress string
 	StackStatusCreateComplete   string
 	StackStatusDeleteFailed     string
+	StackStatusDeleteComplete   string
 }
 
 type ListStacksInput struct {
@@ -50,5 +54,12 @@ type DescribeStacksOutput struct {
 }
 
 type Stack struct {
+	StackName   *string
 	StackStatus *string
+	RoleARN     *string
+	Time        *time.Time
+}
+
+func (i *Stack) String() string {
+	return fmt.Sprintf("%s (%s)", *i.StackName, i.Time.Format(time.RFC822))
 }

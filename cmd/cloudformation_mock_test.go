@@ -18,6 +18,7 @@ func mockConstants() *delete_stacks.Constants {
 		StackStatusDeleteInProgress: "IN_PROGRESS",
 		StackStatusCreateComplete:   "CREATE_COMPLETE",
 		StackStatusDeleteFailed:     "DELETE_FAILED",
+		StackStatusDeleteComplete:   "DELETE_COMPLETE",
 	}
 }
 
