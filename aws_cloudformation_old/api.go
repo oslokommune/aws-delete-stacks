@@ -1,4 +1,4 @@
-package cloudformation_api
+package aws_cloudformation_old
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 )
 
-func NewAWSCloudFormation() *AWSCloudFormation {
+func NewAWSCloudFormationOld() *AWSCloudFormationOld {
 	t := true
 	s := session.Must(session.NewSessionWithOptions(session.Options{
 		Config: aws.Config{
@@ -17,29 +17,16 @@ func NewAWSCloudFormation() *AWSCloudFormation {
 
 	cf := cloudformation.New(s)
 
-	return &AWSCloudFormation{
+	return &AWSCloudFormationOld{
 		cloudformation: cf,
 	}
 }
 
-type AWSCloudFormation struct {
+type AWSCloudFormationOld struct {
 	cloudformation *cloudformation.CloudFormation
 }
 
-func constants() *Constants {
-	return &Constants{
-		StackStatusDeleteInProgress: cloudformation.StackStatusDeleteInProgress,
-		StackStatusCreateComplete:   cloudformation.StackStatusCreateComplete,
-		StackStatusDeleteFailed:     cloudformation.StackStatusDeleteFailed,
-		StackStatusDeleteComplete:   cloudformation.StackStatusDeleteComplete,
-	}
-}
-
-func (c *AWSCloudFormation) Constants() *Constants {
-	return constants()
-}
-
-func (c *AWSCloudFormation) ListStacks(input *ListStacksInput) (*ListStacksOutput, error) {
+func (c *AWSCloudFormationOld) ListStacks(input *ListStacksInput) (*ListStacksOutput, error) {
 	outputOrg, err := c.cloudformation.ListStacks(&cloudformation.ListStacksInput{
 		NextToken:         input.NextToken,
 		StackStatusFilter: input.StackStatusFilter,
@@ -64,7 +51,7 @@ func (c *AWSCloudFormation) ListStacks(input *ListStacksInput) (*ListStacksOutpu
 	return output, nil
 }
 
-func (c *AWSCloudFormation) DeleteStack(input *DeleteStackInput) (*DeleteStackOutput, error) {
+func (c *AWSCloudFormationOld) DeleteStack(input *DeleteStackInput) (*DeleteStackOutput, error) {
 	_, err := c.cloudformation.DeleteStack(&cloudformation.DeleteStackInput{
 		ClientRequestToken: input.ClientRequestToken,
 		StackName:          input.StackName,
@@ -76,7 +63,7 @@ func (c *AWSCloudFormation) DeleteStack(input *DeleteStackInput) (*DeleteStackOu
 	return &DeleteStackOutput{}, nil
 }
 
-func (c *AWSCloudFormation) DescribeStacks(input *DescribeStacksInput) (*DescribeStacksOutput, error) {
+func (c *AWSCloudFormationOld) DescribeStacks(input *DescribeStacksInput) (*DescribeStacksOutput, error) {
 	outputOrg, err := c.cloudformation.DescribeStacks(&cloudformation.DescribeStacksInput{
 		NextToken: input.NextToken,
 		StackName: input.StackName,

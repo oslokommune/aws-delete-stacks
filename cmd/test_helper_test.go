@@ -2,8 +2,8 @@ package cmd_test
 
 import (
 	"bytes"
-	"github.com/oslokommune/aws-delete-stacks/cloudformation_api"
 	"github.com/oslokommune/aws-delete-stacks/cmd"
+	"github.com/oslokommune/aws-delete-stacks/core/delete_stacks/cloudformation_api"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"strings"
@@ -16,7 +16,7 @@ func runTestCases(t *testing.T, testCases []*DeleteCmdTestCase) {
 		t.Run(tc.name, func(t *testing.T) {
 			// Given
 			mock := NewCloudFormationMock()
-			mock.StackSummaries = tc.stackSummaries
+			mock.stacks = tc.stacks
 
 			// When
 			stdout, stderr := runDeleteCommand(t, mock, tc.args)

@@ -1,4 +1,4 @@
-package cloudformation_api
+package aws_cloudformation_old
 
 import (
 	"fmt"
