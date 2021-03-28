@@ -8,5 +8,4 @@ require (
 	github.com/hashicorp/go-uuid v1.0.2
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.4.0
-	gotest.tools v2.2.0+incompatible
 )

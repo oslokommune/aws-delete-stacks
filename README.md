@@ -49,7 +49,7 @@ assuming you use [saml2aws](https://github.com/Versent/saml2aws) and the AWS pro
 
 1. Setup AWS profile defaults
   
-Create a `~/.aws/config` that contains the following contens: (you can do this this by running `aws configure`)
+Create a `~/.aws/config` that contains the following contens: (you can do this by running `aws configure`)
 
 ```
 [default]
