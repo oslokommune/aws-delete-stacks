@@ -28,7 +28,7 @@ func (c *StackStatus) String() string {
 func ParseStackStatus(s string) (StackStatus, error) {
 	for _, v := range stackStatusValues {
 		if s == v.String() {
-			return StackStatus(v), nil
+			return v, nil
 		}
 	}
 
