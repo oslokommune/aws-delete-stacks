@@ -23,6 +23,8 @@ You can have a look at the stacks yourself at
 
 See more examples below.
 
+DISCLAIMER: I don't take responsibility for anything this tool does or your usage of it.
+
 # Install
 
 ```shell
@@ -34,10 +36,13 @@ or
 
 ```shell
 git clone git@github.com:oslokommune/aws-delete-stacks.git
+cd aws-delete-stacks
 go install
 ```
 
-or download directly binary from https://github.com/oslokommune/aws-delete-stacks/releases.
+or
+
+download a binary directly from https://github.com/oslokommune/aws-delete-stacks/releases.
 
 # Run
 
@@ -86,7 +91,7 @@ This is totally safe. Nothing is deleted until you specify the `--force` flag.
 
 When you do, know that stuff in AWS will be deleted you do this. I.e. know what you are doing.
 
-Disclaimer: I don't take responsibility for anything this tool does or your usage of it.
+DISCLAIMER: I don't take responsibility for anything this tool does or your usage of it.
 
 # Syntax
 
