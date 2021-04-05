@@ -58,7 +58,7 @@ func BuildDeleteCommand(cf cloudformation_api.CloudFormation) *cobra.Command {
 	cmd.SilenceUsage = true
 
 	flags.StringVarP(&opts.ExcludeFilter, "exclude", "e", "",
-		"Set filter for which listStacksOutput to subtract from included results (filter method: string contains).")
+		"Set filter for which stacks to subtract from included results (filter method: string contains).")
 	flags.BoolVarP(&opts.Force, "force", "f", false,
 		"Use this flag to actually delete stacks. Otherwise nothing is deleted.")
 

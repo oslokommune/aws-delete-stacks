@@ -8,7 +8,7 @@ import (
 func TestFilter(t *testing.T) {
 	testCases := []*DeleteCmdTestCase{
 		{
-			Name: "Should not delete listStacksOutput that doesn't contain include filter",
+			Name: "Should not delete stacks that doesn't contain include filter",
 			Args: "myenv",
 			ListStacksOutput: BuildListStackOutput(nil,
 				NewStackSummary("somestack-dev", repository.StackStatusCreateComplete),
@@ -17,7 +17,7 @@ func TestFilter(t *testing.T) {
 			ExpectedStdoutContains: []string{"Would delete 0 stack(s)"},
 		},
 		{
-			Name: "Should delete listStacksOutput that contains include filter",
+			Name: "Should delete stacks that contains include filter",
 			Args: "mystack",
 			ListStacksOutput: BuildListStackOutput(nil,
 				NewStackSummary("some-first-stack", repository.StackStatusCreateComplete),
@@ -30,7 +30,7 @@ func TestFilter(t *testing.T) {
 			},
 		},
 		{
-			Name: "Should not delete listStacksOutput that contains include filter and exclude filter",
+			Name: "Should not delete stacks that contains include filter and exclude filter",
 			Args: "other-stack --exclude hosted-zone",
 			ListStacksOutput: BuildListStackOutput(nil,
 				NewStackSummary("firststack", repository.StackStatusCreateComplete),
