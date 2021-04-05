@@ -1,45 +1,41 @@
-package aws_cloudformation
+package application
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/hashicorp/go-uuid"
-	"github.com/oslokommune/aws-delete-stacks/core/delete_stacks/cloudformation_api"
+	"github.com/oslokommune/aws-delete-stacks/core/domain/delete_stacks/cloudformation_api"
+	"github.com/oslokommune/aws-delete-stacks/core/repository"
 	"strings"
 )
 
-func NewAWSCloudFormation(sess *session.Session) cloudformation_api.CloudFormation {
-	cf := cloudformation.New(sess)
-
-	return &AWSCloudFormation{
-		cloudformation: cf,
+func NewCloudFormation(repository repository.CloudFormationRepository) cloudformation_api.CloudFormation {
+	return &CloudFormation{
+		repository: repository,
 	}
 }
 
-type AWSCloudFormation struct {
-	cloudformation *cloudformation.CloudFormation
+type CloudFormation struct {
+	repository repository.CloudFormationRepository
 }
 
-func (c *AWSCloudFormation) ListStacks(statusFilter []cloudformation_api.StackStatus) ([]*cloudformation_api.Stack, error) {
+func (c *CloudFormation) ListStacks(statusFilter []cloudformation_api.StackStatus) ([]*cloudformation_api.Stack, error) {
 	apiStatusFilter := c.toApiStatusFilter(statusFilter)
-	outputs := make([]*cloudformation.StackSummary, 0)
+	outputs := make([]*repository.StackSummary, 0)
 
 	i := 0
 	crashProtection := 1000
 	var nextPageToken *string
 
 	for i < crashProtection {
-		var output *cloudformation.ListStacksOutput
+		var output *repository.ListStacksOutput
 		var err error
 
 		if i == 0 {
-			output, err = c.cloudformation.ListStacks(&cloudformation.ListStacksInput{
+			output, err = c.repository.ListStacks(&repository.ListStacksInput{
 				StackStatusFilter: apiStatusFilter,
 			})
 		} else {
-			output, err = c.cloudformation.ListStacks(&cloudformation.ListStacksInput{
+			output, err = c.repository.ListStacks(&repository.ListStacksInput{
 				NextToken:         nextPageToken,
 				StackStatusFilter: apiStatusFilter,
 			})
@@ -62,7 +58,7 @@ func (c *AWSCloudFormation) ListStacks(statusFilter []cloudformation_api.StackSt
 	return toStacks(outputs)
 }
 
-func (c *AWSCloudFormation) toApiStatusFilter(statusesDomain []cloudformation_api.StackStatus) []*string {
+func (c *CloudFormation) toApiStatusFilter(statusesDomain []cloudformation_api.StackStatus) []*string {
 	statusesAws := make([]*string, len(statusesDomain))
 
 	for i, status := range statusesDomain {
@@ -73,7 +69,7 @@ func (c *AWSCloudFormation) toApiStatusFilter(statusesDomain []cloudformation_ap
 	return statusesAws
 }
 
-func toStacks(summaries []*cloudformation.StackSummary) ([]*cloudformation_api.Stack, error) {
+func toStacks(summaries []*repository.StackSummary) ([]*cloudformation_api.Stack, error) {
 	stacks := make([]*cloudformation_api.Stack, len(summaries))
 
 	for i, summary := range summaries {
@@ -92,13 +88,13 @@ func toStacks(summaries []*cloudformation.StackSummary) ([]*cloudformation_api.S
 	return stacks, nil
 }
 
-func (c *AWSCloudFormation) DeleteStack(stack *cloudformation_api.Stack) error {
+func (c *CloudFormation) DeleteStack(stack *cloudformation_api.Stack) error {
 	clientRequestToken, err := uuid.GenerateUUID()
 	if err != nil {
 		return fmt.Errorf("generating uuid: %w", err)
 	}
 
-	_, err = c.cloudformation.DeleteStack(&cloudformation.DeleteStackInput{
+	_, err = c.repository.DeleteStack(&repository.DeleteStackInput{
 		ClientRequestToken: &clientRequestToken,
 		StackName:          &stack.Name,
 	})
@@ -109,12 +105,12 @@ func (c *AWSCloudFormation) DeleteStack(stack *cloudformation_api.Stack) error {
 	return nil
 }
 
-func (c *AWSCloudFormation) GetStackStatus(stack *cloudformation_api.Stack) (cloudformation_api.StackStatus, error) {
-	describeStackOutputs, err := c.cloudformation.DescribeStacks(&cloudformation.DescribeStacksInput{
+func (c *CloudFormation) GetStackStatus(stack *cloudformation_api.Stack) (cloudformation_api.StackStatus, error) {
+	describeStackOutputs, err := c.repository.DescribeStacks(&repository.DescribeStacksInput{
 		StackName: &stack.Name,
 	})
 	if err != nil {
-		awsError, ok := err.(awserr.RequestFailure)
+		awsError, ok := err.(repository.RequestFailure)
 		if !ok {
 			return "", fmt.Errorf("cloudformation describe stack: %w", err)
 		}
@@ -139,20 +135,20 @@ func (c *AWSCloudFormation) GetStackStatus(stack *cloudformation_api.Stack) (clo
 
 func toStackStatus(s string) (cloudformation_api.StackStatus, error) {
 	switch s {
-	case cloudformation.StackStatusCreateComplete:
+	case repository.StackStatusCreateComplete:
 		return cloudformation_api.StackStatusCreateComplete, nil
-	case cloudformation.StackStatusDeleteInProgress:
+	case repository.StackStatusDeleteInProgress:
 		return cloudformation_api.StackStatusDeleteInProgress, nil
-	case cloudformation.StackStatusDeleteComplete:
+	case repository.StackStatusDeleteComplete:
 		return cloudformation_api.StackStatusDeleteComplete, nil
-	case cloudformation.StackStatusDeleteFailed:
+	case repository.StackStatusDeleteFailed:
 		return cloudformation_api.StackStatusDeleteFailed, nil
 	}
 
 	return "", fmt.Errorf("could not find correct enum for string '%s'", s)
 }
 
-func (c *AWSCloudFormation) getStackNames(describeStackOutput *cloudformation.DescribeStacksOutput) string {
+func (c *CloudFormation) getStackNames(describeStackOutput *repository.DescribeStacksOutput) string {
 	nameSlice := make([]string, len(describeStackOutput.Stacks))
 	for i, s := range describeStackOutput.Stacks {
 		nameSlice[i] = *s.StackName

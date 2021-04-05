@@ -2,7 +2,7 @@ package delete_stacks
 
 import (
 	"fmt"
-	"github.com/oslokommune/aws-delete-stacks/core/delete_stacks/cloudformation_api"
+	"github.com/oslokommune/aws-delete-stacks/core/domain/delete_stacks/cloudformation_api"
 	"io"
 	"strings"
 	"time"
@@ -142,17 +142,26 @@ func (d *Deleter) waitForDeleteNotInProgress(input *cloudformation_api.Stack) (c
 
 		wait = stackStatus == cloudformation_api.StackStatusDeleteInProgress
 
-		sleepDuration := d.nextSleep(i)
-
-		_, err = fmt.Fprintf(d.out, "Waiting %d seconds to see if stack deletion is done...\n", sleepDuration)
+		err = d.sleep(i)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("sleep: %w", err)
 		}
-
-		time.Sleep(time.Second * d.nextSleep(i))
 	}
 
 	return stackStatus, nil
+}
+
+func (d *Deleter) sleep(iteration int) error {
+	sleepDuration := d.nextSleep(iteration)
+
+	_, err := fmt.Fprintf(d.out, "Waiting %d seconds to see if stack deletion is done...\n", sleepDuration)
+	if err != nil {
+		return err
+	}
+
+	time.Sleep(time.Second * d.nextSleep(iteration))
+
+	return nil
 }
 
 func (_ *Deleter) nextSleep(i int) time.Duration {
